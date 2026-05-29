@@ -22,20 +22,23 @@ user-invocable: true
 ## STEP 1: 프로젝트 정보 수집
 
 ```bash
-pwd
+~/.claude/skills/log-session/scripts/get-session-info.sh
 ```
 
-- 현재 작업 디렉토리를 확인합니다.
-- 프로젝트명은 디렉토리명 기준 (예: `learning-finder`)
-- 세션 저장 경로 계산:
-  - `pwd` 경로의 `/`를 `-`로 치환한 폴더명 사용
-  - 저장 위치: `~/.claude/projects/{폴더명}/sessions/`
+JSON 결과에서 다음 필드를 사용합니다:
+
+| 필드 | 용도 |
+|------|------|
+| `project_name` | 세션 로그 본문의 "프로젝트" 항목 |
+| `sessions_dir` | 저장 위치 (`~/.claude/projects/{폴더명}/sessions`) |
+| `session_id_short` | 파일명에 사용 (앞 8자리) |
+| `transcript_path` | 컨텍스트 손실 시 Read 도구로 읽을 transcript 경로 |
 
 ---
 
 ## STEP 2: 세션 작업 분석
 
-현재 대화를 처음부터 검토합니다.
+현재 대화를 처음부터 검토합니다. 컨텍스트가 압축/요약되어 초반 대화가 손실된 경우 STEP 1의 `transcript_path`를 Read 도구로 읽어 보강합니다.
 
 1. **작업 단위로 그룹핑** — 사용자 요청 하나 = 작업 하나
 2. **각 작업에 L1~L4 부여** — 위 레벨 기준 적용
@@ -91,11 +94,23 @@ pwd
 
 ## STEP 4: 파일 저장
 
-1. 저장 디렉토리가 없으면 생성합니다:
+1. STEP 1의 `sessions_dir`이 없으면 생성합니다:
    ```bash
-   mkdir -p ~/.claude/projects/{폴더명}/sessions/
+   mkdir -p {sessions_dir}
    ```
 
-2. Write 도구로 파일을 저장합니다.
+2. Write 도구로 `{sessions_dir}/{YYYY-MM-DD}-{session_id_short}.md` 저장.
 
 3. 저장 완료 후 파일 경로와 작업 흐름을 한 줄로 요약합니다.
+
+---
+
+## 설치
+
+리포를 클론한 디렉토리에서:
+
+```bash
+./install.sh
+```
+
+`~/.claude/skills/log-session/`에 SKILL.md와 scripts/가 복사되고 실행 권한이 설정됩니다.
