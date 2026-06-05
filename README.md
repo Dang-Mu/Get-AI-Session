@@ -1,6 +1,6 @@
 # Get-AI-Session
 
-Claude Code 세션의 작업을 L1~L4 레벨로 분류하고 프로젝트별 MD 파일로 저장하는 사용자 호출 스킬.
+Claude Code 또는 Codex 세션의 작업을 L1~L4 레벨로 분류하고 프로젝트별 MD 파일로 저장하는 사용자 호출 스킬.
 
 ## 설치
 
@@ -10,7 +10,18 @@ cd Get-AI-Session
 ./install.sh
 ```
 
-`~/.claude/skills/log-session/` 에 SKILL.md와 헬퍼 스크립트가 복사됩니다. 기존 파일이 있으면 덮어쓰기 전에 한 번씩 묻습니다.
+기본값은 Codex 설치입니다. 설치할 버전을 직접 지정할 수도 있습니다.
+
+```bash
+./install.sh claude
+./install.sh codex
+./install.sh all
+```
+
+- Claude: `~/.claude/skills/log-session/`
+- Codex: `~/.codex/skills/log-session/`
+
+기존 파일이 있으면 덮어쓰기 전에 한 번씩 묻습니다.
 
 ## 사용
 
@@ -20,10 +31,13 @@ Claude Code에서 다음 명령을 실행하면 현재 세션을 분석하여 MD
 /log-session
 ```
 
+Codex에서는 `$log-session` 스킬을 호출하거나 "log-session으로 세션 기록 저장"처럼 요청합니다.
+
 저장 위치는 다음과 같습니다:
 
 ```
 ~/.claude/projects/{프로젝트폴더}/sessions/{YYYY-MM-DD}-{세션ID앞8자리}.md
+~/.codex/projects/{프로젝트폴더}/sessions/{YYYY-MM-DD}-{세션ID앞8자리}.md
 ```
 
 ## 폴더 구조
@@ -31,7 +45,13 @@ Claude Code에서 다음 명령을 실행하면 현재 세션을 분석하여 MD
 ```
 .
 ├── README.md
-├── install.sh                       설치 스크립트 (대화형 덮어쓰기)
+├── install.sh                       설치 스크립트 (대상 선택 + 대화형 덮어쓰기)
+├── codex/                           ~/.codex/skills/log-session/ 로 복사되는 내용
+│   ├── SKILL.md                     스킬 정의 (Codex가 따라가는 절차)
+│   ├── agents/
+│   │   └── openai.yaml              Codex 앱 표시용 메타데이터
+│   └── scripts/
+│       └── get-session-info.sh      현재 세션 메타데이터를 JSON으로 출력
 └── claude/                          ~/.claude/skills/log-session/ 로 복사되는 내용
     ├── SKILL.md                     스킬 정의 (Claude가 따라가는 절차)
     └── scripts/
@@ -62,4 +82,5 @@ Claude Code에서 다음 명령을 실행하면 현재 세션을 분석하여 MD
 }
 ```
 
-세션 ID는 `CLAUDE_SESSION_ID` 환경변수 → 없으면 현재 프로젝트 폴더의 가장 최근 `*.jsonl` 파일명 순으로 추출합니다.
+Claude 세션 ID는 `CLAUDE_SESSION_ID` 환경변수 → 없으면 현재 프로젝트 폴더의 가장 최근 `*.jsonl` 파일명 순으로 추출합니다.
+Codex 세션 ID는 `CODEX_SESSION_ID` 환경변수 → 없으면 `~/.codex/sessions` 아래의 가장 최근 `*.jsonl` 파일명 순으로 추출합니다.

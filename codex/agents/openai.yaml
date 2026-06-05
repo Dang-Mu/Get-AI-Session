@@ -1,0 +1,4 @@
+interface:
+  display_name: "Log Session"
+  short_description: "Codex 세션을 레벨별 MD 로그로 저장"
+  default_prompt: "Use $log-session to summarize and save this Codex session as a project session log."

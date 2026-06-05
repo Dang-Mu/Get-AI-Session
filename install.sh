@@ -2,18 +2,6 @@
 set -euo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-SOURCE_DIR="$SCRIPT_DIR/claude"
-TARGET_DIR="$HOME/.claude/skills/log-session"
-
-if [ ! -d "$SOURCE_DIR" ]; then
-  echo "오류: $SOURCE_DIR 가 없습니다. 리포 루트에서 실행하세요." >&2
-  exit 1
-fi
-
-echo "log-session 스킬 설치"
-echo "  source: $SOURCE_DIR"
-echo "  target: $TARGET_DIR"
-echo ""
 
 confirm_overwrite() {
   read -r -p "  덮어쓸까요? [y/N] " ans </dev/tty
@@ -40,19 +28,92 @@ copy_with_prompt() {
   fi
 }
 
-mkdir -p "$TARGET_DIR/scripts"
+select_target() {
+  if [ "${1:-}" != "" ]; then
+    printf '%s\n' "$1"
+    return
+  fi
 
-copy_with_prompt "$SOURCE_DIR/SKILL.md" "$TARGET_DIR/SKILL.md"
+  echo "설치할 log-session 스킬 버전을 선택하세요." >/dev/tty
+  echo "  1) claude  -> ~/.claude/skills/log-session" >/dev/tty
+  echo "  2) codex   -> ~/.codex/skills/log-session" >/dev/tty
+  echo "  3) all     -> 둘 다 설치" >/dev/tty
+  echo "" >/dev/tty
+  read -r -p "선택 [claude/codex/all, 기본: codex] " target </dev/tty
+  printf '%s\n' "${target:-codex}"
+}
 
-for script in "$SOURCE_DIR/scripts/"*.sh; do
-  [ -f "$script" ] || continue
-  copy_with_prompt "$script" "$TARGET_DIR/scripts/$(basename "$script")"
-done
+install_skill() {
+  local variant="$1"
+  local source_dir
+  local target_dir
 
-chmod +x "$TARGET_DIR/scripts/"*.sh 2>/dev/null || true
+  case "$variant" in
+    claude)
+      source_dir="$SCRIPT_DIR/claude"
+      target_dir="$HOME/.claude/skills/log-session"
+      ;;
+    codex)
+      source_dir="$SCRIPT_DIR/codex"
+      target_dir="${CODEX_HOME:-$HOME/.codex}/skills/log-session"
+      ;;
+    *)
+      echo "오류: 알 수 없는 설치 대상입니다: $variant" >&2
+      echo "사용법: ./install.sh [claude|codex|all]" >&2
+      exit 1
+      ;;
+  esac
 
-echo ""
+  if [ ! -d "$source_dir" ]; then
+    echo "오류: $source_dir 가 없습니다. 리포 루트에서 실행하세요." >&2
+    exit 1
+  fi
+
+  echo "log-session 스킬 설치 ($variant)"
+  echo "  source: $source_dir"
+  echo "  target: $target_dir"
+  echo ""
+
+  mkdir -p "$target_dir/scripts"
+  copy_with_prompt "$source_dir/SKILL.md" "$target_dir/SKILL.md"
+
+  if [ -d "$source_dir/agents" ]; then
+    mkdir -p "$target_dir/agents"
+    for agent_file in "$source_dir/agents/"*; do
+      [ -f "$agent_file" ] || continue
+      copy_with_prompt "$agent_file" "$target_dir/agents/$(basename "$agent_file")"
+    done
+  fi
+
+  for script in "$source_dir/scripts/"*.sh; do
+    [ -f "$script" ] || continue
+    copy_with_prompt "$script" "$target_dir/scripts/$(basename "$script")"
+  done
+
+  chmod +x "$target_dir/scripts/"*.sh 2>/dev/null || true
+
+  echo ""
+}
+
+TARGET="$(select_target "${1:-}")"
+
+case "$TARGET" in
+  claude|codex)
+    install_skill "$TARGET"
+    ;;
+  all)
+    install_skill claude
+    install_skill codex
+    ;;
+  *)
+    echo "오류: 알 수 없는 설치 대상입니다: $TARGET" >&2
+    echo "사용법: ./install.sh [claude|codex|all]" >&2
+    exit 1
+    ;;
+esac
+
 echo "✓ 설치 완료"
 echo ""
 echo "사용 방법:"
-echo "  Claude Code에서 /log-session 호출"
+echo "  Claude Code: /log-session"
+echo "  Codex: \$log-session 스킬 호출 또는 'log-session으로 세션 기록 저장' 요청"
