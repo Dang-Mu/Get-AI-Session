@@ -29,8 +29,9 @@ JSON 결과에서 다음 필드를 사용합니다:
 
 | 필드 | 용도 |
 |------|------|
-| `project_name` | 세션 로그 본문의 "프로젝트" 항목 |
-| `sessions_dir` | 저장 위치 (`~/.claude/projects/{폴더명}/sessions`) |
+| `project_name` | 세션 로그 본문의 "프로젝트" 항목 + 파일명 접두사 |
+| `downloads_dir` | 탐지된 다운로드 폴더 경로 (참고용) |
+| `sessions_dir` | 저장 위치 (`{다운로드}/claude-sessions`) |
 | `session_id_short` | 파일명에 사용 (앞 8자리) |
 | `transcript_path` | 컨텍스트 손실 시 Read 도구로 읽을 transcript 경로 |
 
@@ -50,7 +51,9 @@ JSON 결과에서 다음 필드를 사용합니다:
 
 ## STEP 3: MD 파일 생성
 
-파일명: `{YYYY-MM-DD}-{세션ID 앞 8자리}.md`
+파일명: `{프로젝트명}-{YYYY-MM-DD}-{세션ID 앞 8자리}.md`
+
+> 모든 프로젝트의 세션이 `claude-sessions` 한 폴더에 모이므로, 파일명 앞에 프로젝트명을 붙여 구분합니다.
 
 아래 형식으로 작성합니다:
 
@@ -94,12 +97,12 @@ JSON 결과에서 다음 필드를 사용합니다:
 
 ## STEP 4: 파일 저장
 
-1. STEP 1의 `sessions_dir`이 없으면 생성합니다:
+1. STEP 1의 `sessions_dir`(`{다운로드}/claude-sessions`)이 없으면 생성합니다:
    ```bash
    mkdir -p {sessions_dir}
    ```
 
-2. Write 도구로 `{sessions_dir}/{YYYY-MM-DD}-{session_id_short}.md` 저장.
+2. Write 도구로 `{sessions_dir}/{project_name}-{YYYY-MM-DD}-{session_id_short}.md` 저장.
 
 3. 저장 완료 후 파일 경로와 작업 흐름을 한 줄로 요약합니다.
 
