@@ -39,8 +39,16 @@ select_target() {
   echo "  2) codex   -> ~/.codex/skills/log-session" >/dev/tty
   echo "  3) all     -> 둘 다 설치" >/dev/tty
   echo "" >/dev/tty
-  read -r -p "선택 [claude/codex/all, 기본: codex] " target </dev/tty
-  printf '%s\n' "${target:-codex}"
+  read -r -p "번호로 입력하세요 [1/2/3, 기본: 2(codex)] " choice </dev/tty
+  case "${choice:-2}" in
+    1) printf '%s\n' "claude" ;;
+    2) printf '%s\n' "codex" ;;
+    3) printf '%s\n' "all" ;;
+    *)
+      echo "오류: 1, 2, 3 중 하나의 번호를 입력하세요 (입력값: $choice)" >&2
+      exit 1
+      ;;
+  esac
 }
 
 install_skill() {
